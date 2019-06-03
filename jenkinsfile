@@ -1,0 +1,68 @@
+pipeline {
+  environment {
+    registry = "shruthi1/nodejs-1"
+    registryCredential = 'dockerhub'
+    dockerImage = ''
+  }
+  agent any
+  tools {nodejs "node" }
+  stages {
+    stage('Cloning Git') {
+      steps {
+        git 'https://github.com/shruthi-parikirala/node-js-pipe.git'
+      }
+    }
+    stage('Build') {
+       steps {
+         sh 'npm run'
+       }
+    }
+    stage('Test') {
+      steps {
+        sh 'npm test'
+      }
+    }
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
+    }
+    stage('Deploy Image') {
+      steps{
+         script {
+            docker.withRegistry( '', registryCredential ) {
+            dockerImage.push("latest")
+          }
+        }
+      }
+    }
+    stage('Remove Unused docker image') {
+      steps{
+        sh "docker rmi $registry:$BUILD_NUMBER"
+      }
+    }
+     stage('create directry'){
+            steps{
+               sh 'rm -rf cloudseals'    
+               sh 'mkdir cloudseals'
+               
+                
+            } 
+            
+        }
+        stage('copy playbook'){
+            steps{
+               sh 'cp /home/jenkins/playbook.yml /home/jenkins/workspace/nodejs/cloudseals'
+                sh 'cd /home/jenkins/workspace/nodejs/cloudseals'
+            }
+        }
+      
+        stage ('deploy playbook'){
+            steps{
+                sh 'ansible-playbook /home/jenkins/workspace/nodejs/cloudseals/playbook.yml '            }
+        }
+    }    
+  
+}
