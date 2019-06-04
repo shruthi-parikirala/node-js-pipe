@@ -6,11 +6,9 @@
     "nodejs",
     "bootstrap",
     "express"
-    
   ],
   "dependencies": {
     "express": "^4.16.4"
   }
-  ##this pipeline built with master branch
-}
+ }
 
